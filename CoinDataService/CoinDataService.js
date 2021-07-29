@@ -31,7 +31,12 @@ export default class CoinDataService {
         this.fetchCoinData();
 
         this.dataTicker = setInterval(() => {
-            this.fetchCoinData();
+            try {
+                this.fetchCoinData();
+            }
+            catch (e) {
+                console.log(e);
+            }
         }, 30000);
     }
 
