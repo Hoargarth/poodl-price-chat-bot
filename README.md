@@ -1,3 +1,4 @@
+![POODL PRICE CHAT BOT](https://raw.githubusercontent.com/Hoargarth/poodl-price-chat-bot/main/Readme/images/poodl.png?token=AFR763T7XTRVBWAHXCGLBTLBAXCDA)
 # POODL Price Chat Bot
 
 All API-endpoints used are free!
