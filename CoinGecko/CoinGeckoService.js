@@ -24,6 +24,10 @@ export default class CoinGeckoService {
             simplePriceResponse.then(simplePriceData => {
                 const simplePrice = simplePriceData[this.coinID][this.vsCurrency];
                 resolve(simplePrice);
+            })
+            .catch(e => {
+                console.log(e);
+                resolve(null);
             });
         });
     }
@@ -40,6 +44,10 @@ export default class CoinGeckoService {
 
             marketChartDataResponse.then(chartData => {
                 resolve(chartData);
+            })
+            .catch(e => {
+                console.log(e);
+                resolve(null);
             });
         });
     }

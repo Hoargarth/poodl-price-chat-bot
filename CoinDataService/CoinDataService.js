@@ -31,7 +31,12 @@ export default class CoinDataService {
         this.fetchCoinData();
 
         this.dataTicker = setInterval(() => {
-            this.fetchCoinData();
+            try {
+                this.fetchCoinData();
+            }
+            catch (e) {
+                console.log(e);
+            }
         }, 30000);
     }
 
@@ -42,12 +47,18 @@ export default class CoinDataService {
         pricePromise.then(price => {
             this.currentPrice = price;
             this.pricePerMillion = price * 1000000;
+        })
+        .catch(e => {
+            console.log(e);
         });
 
         // get holders
         const holdersPromise = this.covalentService.getTokenHoldersCount();
         holdersPromise.then(holders => {
             this.currentHolders = holders;
+        })
+        .catch(e => {
+            console.log(e);
         });
 
         // get market chart data from the last 24 hours
@@ -60,13 +71,22 @@ export default class CoinDataService {
            priceChartBufferPromise.then(buffer => {
                this.priceChartBuffer = buffer;
            })
+           .catch(e => {
+                console.log(e);
+            });
         })
+        .catch(e => {
+            console.log(e);
+        });
 
         // get burned amount
         const burnedAmountPromise = this.bscScanService.getBurnAmount();
         burnedAmountPromise.then(burnedAmount => {
             this.burned = burnedAmount;
             this.circulatingSupply = this.tokenSupply - this.burned;
+        })
+        .catch(e => {
+            console.log(e);
         });
 
         this.lastUpdateTime = Math.floor(Date.now() / 1000);

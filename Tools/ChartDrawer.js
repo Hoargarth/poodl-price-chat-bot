@@ -7,6 +7,8 @@ export default class ChartDrawer {
     constructor() {
         this.width = 1000;
         this.height = 600;
+
+        moment.tz.setDefault("UTC");
     }
 
     async renderPriceChart(chartData) {
@@ -86,7 +88,12 @@ export default class ChartDrawer {
                     },
                     stepSize: 2,
                     parser: function(date) {
-                        return moment(date).utcOffset('+0100');
+                        return moment(date).utcOffset('+0000');
+                    }
+                },
+                ticks: {
+                    font: {
+                        size: 28
                     }
                 }
             };
@@ -94,6 +101,9 @@ export default class ChartDrawer {
             chartConfig.options.scales.y = {
                 position: 'right',
                 ticks: {
+                    font: {
+                        size: 28
+                    },
                     callback: function(value, index, values) {
                         return value.toPrecision(3);
                     }
