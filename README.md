@@ -1,9 +1,17 @@
 ![POODL PRICE CHAT BOT](https://raw.githubusercontent.com/Hoargarth/poodl-price-chat-bot/main/Readme/images/poodl.png?token=AFR763T7XTRVBWAHXCGLBTLBAXCDA)
 # POODL Price Chat Bot
 
-All API-endpoints used are free!
+### Setup
+- clone the repository
+- run `$ npm install` - node version 12 or higher (tested with 12 and 14)
+- add your data to the config files `bscscan.json`, `coingecko.json`, `covalent.json` and `telegram.json`
+- start it: `$ node index.js`
+
+Note: currently only working for POODL on BSC
 
 ### APIs Used
+All API-endpoints used are free!
+
 [BSCScan](https://bscscan.com/apis)
 - get burn wallet balance -- [endpoint](https://api.bscscan.com/api?module=account&action=tokenbalance&contractaddress=0xe9e7cea3dedca5984780bafc599bd69add087d56&address=0x89e73303049ee32919903c09e8de5629b84f59eb&tag=latest&apikey=YourApiKeyToken)
 
