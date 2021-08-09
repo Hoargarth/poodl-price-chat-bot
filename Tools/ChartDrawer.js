@@ -37,7 +37,7 @@ export default class ChartDrawer {
                             display: true,
                             font: {
                                 weight: 'bold',
-                                size: 32
+                                size: 30
                             },
                         },
                         legend: {
@@ -78,7 +78,7 @@ export default class ChartDrawer {
             // configs
             chartConfig.data.datasets.label = 'POODL / USD Price';
 
-            chartConfig.options.plugins.title.text = 'POODL / USD Price since a day ago';
+            chartConfig.options.plugins.title.text = ['POODL / USD Price since a day ago','(Includes DEX and CEX data)'];            
 
             chartConfig.options.scales.x = {
                 type: 'time',
