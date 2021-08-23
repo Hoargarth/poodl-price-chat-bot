@@ -5,7 +5,9 @@ import Chartdrawer from "../Tools/ChartDrawer.js";
 
 export default class CoinDataService {
     constructor(coingeckoConfig, covalentConfig, bscScanConfig) {
-        this.dataTicker = null;
+        this.dataTickerLive = null;
+        this.dataTickerHalfMinute = null;
+        this.dataTickerHour = null;
 
         this.coinData = {
             lastUpdate: 0,
@@ -34,20 +36,42 @@ export default class CoinDataService {
     // gets executed on by the constructor (so basically on bot startup)
     // executes first data fetch + sets up a ticker to fetch data every 30 seconds
     setupDataTicker() {
-        this.fetchCoinData();
+        this.fetchCoinDataLive();
+        this.fetchCoinDataHalfMinute();
+        this.fetchCoinDataHour();
 
-        this.dataTicker = setInterval(() => {
+        // ticker for live data
+        this.dataTickerLive = setInterval(() => {
             try {
-                this.fetchCoinData();
+                this.fetchCoinDataLive();
+            }
+            catch (e) {
+                console.log(e);
+            }
+        }, 5000);
+
+        // ticker for data not needed live but frequently
+        this.dataTickerHalfMinute = setInterval(() => {
+            try {
+                this.fetchCoinDataHalfMinute();
             }
             catch (e) {
                 console.log(e);
             }
         }, 30000);
+
+        // ticker for non critical data
+        this.dataTickerHour = setInterval(() => {
+            try {
+                this.fetchCoinDataHour();
+            }
+            catch (e) {
+                console.log(e);
+            }
+        }, 1800000);
     }
 
-    // all coin data gets fetched here
-    async fetchCoinData() {
+    async fetchCoinDataLive() {
         // get simple price
         const pricePromise = this.coinGeckoService.getCoinPrice();
         pricePromise.then(price => {
@@ -58,6 +82,11 @@ export default class CoinDataService {
             console.log(e);
         });
 
+        this.coinData.lastUpdate = Date.now();
+    }
+
+    // all coin data gets fetched here
+    async fetchCoinDataHalfMinute() {
         // get holders
         const holdersPromise = this.covalentService.getTokenHoldersCount();
         holdersPromise.then(holders => {
@@ -85,6 +114,10 @@ export default class CoinDataService {
             console.log(e);
         });
 
+        this.coinData.lastUpdate = Date.now();
+    }
+
+    async fetchCoinDataHour() {
         // get burned amount
         const burnedAmountPromise = this.bscScanService.getBurnAmount();
         burnedAmountPromise.then(burnedAmount => {
