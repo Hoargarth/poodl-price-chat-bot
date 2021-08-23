@@ -23,16 +23,6 @@ export default class CoinDataService {
             }
         }
 
-        // this.currentPrice = 0;
-        // this.pricePerMillion = 0;
-        // this.currentHolders = 0;
-        // this.marketChartData = null; // contains: prices, market_cap, total_volumes
-        // this.priceChartBuffer = null; // holds the price chart as an image stream
-        // this.lastUpdateTime = 0; // holds a seconds timestamp
-        // this.burned = 0;
-        // this.tokenSupply = 100000000000000;
-        // this.circulatingSupply = 0;
-
         this.coinGeckoService = new CoinGeckoService(coingeckoConfig);
         this.covalentService = new CovalentService(covalentConfig);
         this.bscScanService = new BscScanService(bscScanConfig);
@@ -105,6 +95,6 @@ export default class CoinDataService {
             console.log(e);
         });
 
-        this.coinData.lastUpdate = Math.floor(Date.now() / 1000);
+        this.coinData.lastUpdate = Date.now();
     }
 }

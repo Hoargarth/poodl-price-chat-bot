@@ -1,3 +1,6 @@
+import moment from 'moment';
+import 'moment-timezone';
+
 export default class StringConverter {
     static roundXDecimals(number, count) {
         return number.toFixed(count);
@@ -24,5 +27,13 @@ export default class StringConverter {
         const format = new Intl.NumberFormat('en-US');
         const mc = price * supply
         return format.format(Math.round(mc));
+    }
+
+    static getUTCTime(timeStamp) {
+        const momentTime = moment(timeStamp);
+        const utcMoment = momentTime.utcOffset('+0000');
+        const utcDate = utcMoment.format('MMM Do - hh:MM');
+
+        return utcDate;
     }
 }

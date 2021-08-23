@@ -30,7 +30,7 @@ bot.command('price', (ctx) => {
 
 💰 Circulating Supply ${StringConverter.convertToTrillion(coinDataService.coinData.general.circulatingSupply)}t+
 
-Updated ${StringConverter.getElapsedSeconds(coinDataService.coinData.lastUpdate)} seconds ago
+Updated: ${StringConverter.getUTCTime(coinDataService.coinData.lastUpdate)}
     `,
         {
             disable_web_page_preview: true,
@@ -51,7 +51,7 @@ bot.command('chart', (ctx) => {
 
 💰 Circulating Supply ${StringConverter.convertToTrillion(coinDataService.coinData.general.circulatingSupply)}t+
 
-Updated ${StringConverter.getElapsedSeconds(coinDataService.coinData.general.lastUpdateTime)} seconds ago
+Updated: ${StringConverter.getUTCTime(coinDataService.coinData.general.lastUpdateTime)}
     `;
 
     if (priceChartBuffer !== null) {
