@@ -22,15 +22,15 @@ const bot = new Telegraf(telegramConfig.telegramApiToken)
 // /price command, prints only coin data
 bot.command('price', (ctx) => {
     ctx.replyWithMarkdown(`
-🚀 [POODL](https://t.me/poodl) 🐩🐩 1M tokens = $${StringConverter.roundXDecimals(coinDataService.pricePerMillion, 5)}
+🚀 [POODL](https://t.me/poodl) 🐩🐩 1M tokens = $${StringConverter.roundXDecimals(coinDataService.coinData.coinGecko.pricePerMillion, 5)}
 
-💬 Holders ${StringConverter.formatNumberInternational(coinDataService.currentHolders)}
+💬 Holders ${StringConverter.formatNumberInternational(coinDataService.coinData.general.currentHolders)}
 
-💴 Market Cap $${StringConverter.calcMarketCap(coinDataService.currentPrice, coinDataService.circulatingSupply)}
+💴 Market Cap $${StringConverter.calcMarketCap(coinDataService.coinData.coinGecko.currentPrice, coinDataService.coinData.general.circulatingSupply)}
 
-💰 Circulating Supply ${StringConverter.convertToTrillion(coinDataService.circulatingSupply)}t+
+💰 Circulating Supply ${StringConverter.convertToTrillion(coinDataService.coinData.general.circulatingSupply)}t+
 
-Updated ${StringConverter.getElapsedSeconds(coinDataService.lastUpdateTime)} seconds ago
+Updated ${StringConverter.getElapsedSeconds(coinDataService.coinData.lastUpdate)} seconds ago
     `,
         {
             disable_web_page_preview: true,
@@ -41,17 +41,17 @@ Updated ${StringConverter.getElapsedSeconds(coinDataService.lastUpdateTime)} sec
 
 // /chart command, prints coin data with price chart
 bot.command('chart', (ctx) => {
-    const priceChartBuffer = coinDataService.priceChartBuffer;
+    const priceChartBuffer = coinDataService.coinData.coinGecko.priceChartBuffer;
     const caption = `
-🚀 [POODL](https://t.me/poodl) 🐩🐩 1M tokens \= $${StringConverter.roundXDecimals(coinDataService.pricePerMillion, 5)}
+🚀 [POODL](https://t.me/poodl) 🐩🐩 1M tokens \= $${StringConverter.roundXDecimals(coinDataService.coinData.coinGecko.pricePerMillion, 5)}
 
-💬 Holders ${StringConverter.formatNumberInternational(coinDataService.currentHolders)}
+💬 Holders ${StringConverter.formatNumberInternational(coinDataService.coinData.general.currentHolders)}
 
-💴 Market Cap $${StringConverter.calcMarketCap(coinDataService.currentPrice, coinDataService.circulatingSupply)}
+💴 Market Cap $${StringConverter.calcMarketCap(coinDataService.coinData.coinGecko.currentPrice, coinDataService.coinData.general.circulatingSupply)}
 
-💰 Circulating Supply ${StringConverter.convertToTrillion(coinDataService.circulatingSupply)}t+
+💰 Circulating Supply ${StringConverter.convertToTrillion(coinDataService.coinData.general.circulatingSupply)}t+
 
-Updated ${StringConverter.getElapsedSeconds(coinDataService.lastUpdateTime)} seconds ago
+Updated ${StringConverter.getElapsedSeconds(coinDataService.coinData.general.lastUpdateTime)} seconds ago
     `;
 
     if (priceChartBuffer !== null) {
