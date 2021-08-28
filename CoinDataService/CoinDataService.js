@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import BscScanService from "../BscScan/BscScanService.js";
 import CoinGeckoService from "../CoinGecko/CoinGeckoService.js";
 import CovalentService from "../Covalent/CovalentService.js";
@@ -8,6 +9,9 @@ export default class CoinDataService {
         this.dataTickerLive = null;
         this.dataTickerHalfMinute = null;
         this.dataTickerHour = null;
+        this.poodlStartBlock = 6795681;
+        this.holdersBlockStep = 50000
+        this.currentBlock = 0;
 
         this.coinData = {
             lastUpdate: 0,
@@ -15,6 +19,7 @@ export default class CoinDataService {
                 burned: 0,
                 circulatingSupply: 0,
                 currentHolders: 0,
+                holdersHistory: JSON.parse(fs.readFileSync('./CoinDataService/holdersHistory.json')),
                 tokenSupply: 100000000000000,
             },
             coinGecko: {
@@ -23,7 +28,9 @@ export default class CoinDataService {
                 marketChartData: null,
                 priceChartBuffer: null,
             }
-        }
+        };
+
+        console.log(this.coinData.general.holdersHistory);
 
         this.coinGeckoService = new CoinGeckoService(coingeckoConfig);
         this.covalentService = new CovalentService(covalentConfig);
@@ -89,12 +96,13 @@ export default class CoinDataService {
     async fetchCoinDataHalfMinute() {
         // get holders
         const holdersPromise = this.covalentService.getTokenHoldersCount();
-        holdersPromise.then(holders => {
+        holdersPromise.then(holdersData => {
+            const holders = holdersData.pagination.total_count;
             this.coinData.general.currentHolders = holders;
-        })
-        .catch(e => {
-            console.log(e);
-        });
+            })
+            .catch(e => {
+                console.log(e);
+            });
 
         // get market chart data from the last 24 hours
         const marketChartDataPromise = this.coinGeckoService.getMarketChartsData();
@@ -102,11 +110,11 @@ export default class CoinDataService {
             this.coinData.coinGecko.marketChartData = marketChartData;
 
             // draw price chart
-           const priceChartBufferPromise = this.chartDrawer.renderPriceChart(marketChartData.prices);
-           priceChartBufferPromise.then(buffer => {
+            const priceChartBufferPromise = this.chartDrawer.renderPriceChart(marketChartData.prices);
+            priceChartBufferPromise.then(buffer => {
             this.coinData.coinGecko.priceChartBuffer = buffer;
-           })
-           .catch(e => {
+            })
+            .catch(e => {
                 console.log(e);
             });
         })
@@ -121,13 +129,43 @@ export default class CoinDataService {
         // get burned amount
         const burnedAmountPromise = this.bscScanService.getBurnAmount();
         burnedAmountPromise.then(burnedAmount => {
-            this.coinData.general.burned = burnedAmount;
-            this.coinData.general.circulatingSupply = this.coinData.general.tokenSupply - this.coinData.general.burned;
-        })
-        .catch(e => {
-            console.log(e);
+        this.coinData.general.burned = burnedAmount;
+        this.coinData.general.circulatingSupply = this.coinData.general.tokenSupply - this.coinData.general.burned;
+            })
+            .catch(e => {
+                console.log(e);
         });
 
+        const holdersHistoryCachedBlocks = Object.keys(this.coinData.general.holdersHistory);
+        let nextBlock = this.poodlStartBlock;
+
+        if (holdersHistoryCachedBlocks.length > 0) {
+            nextBlock = parseInt(holdersHistoryCachedBlocks[holdersHistoryCachedBlocks.length - 1]);
+        }
+
+        const holdersHistory = this.getHoldersHistory(nextBlock);        
+
         this.coinData.lastUpdate = Date.now();
+    }
+
+    getHoldersHistory(blockHeight) {
+        const blockDataPromise = this.covalentService.getTokenHoldersCount(blockHeight);
+
+        blockDataPromise.then(blockData => {
+            const historyData = {
+                date: 0,
+                holders: blockData.pagination.total_count,
+            };
+
+            this.covalentService.getBlockInfo(blockHeight).then(data => {
+                if (data.items.length > 0) {
+                    historyData.date = data.items[0].signed_at;
+                    this.coinData.general.holdersHistory[`${blockHeight}`] = historyData;
+                    fs.writeFileSync('./CoinDataService/holdersHistory.json', JSON.stringify(this.coinData.general.holdersHistory))
+
+                    this.getHoldersHistory(blockHeight + this.holdersBlockStep);
+                }
+            });
+        });
     }
 }

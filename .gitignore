@@ -7,3 +7,5 @@ node_modules/
 # app
 Config/*
 !Config/*.sample
+test.js
+CoinDataService/holdersHistory.json
