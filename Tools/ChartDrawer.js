@@ -66,8 +66,6 @@ export default class ChartDrawer {
                 } 
             });
 
-            const presentHours = [];
-
             chartData.forEach(priceData => {
                 let priceDate = moment(priceData[0]);
 
@@ -110,7 +108,109 @@ export default class ChartDrawer {
                 }
             }
 
-            // render teh chart
+            // render the chart
+            const chartBufferPromise = priceChartCanvas.renderToBuffer(chartConfig, 'image/png');
+            chartBufferPromise.then(buffer => {
+                resolve(buffer);
+            });
+        })
+    }
+
+    async renderHoldersChart(chartData) {
+        return new Promise(resolve => {
+
+            // this config somehow does not want to be global :(
+            const chartConfig = {
+                type: 'line',
+                //plugins: [this.bgImagePlugin],
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '# of #',
+                        data: [],
+                        backgroundColor: 'rgba(245, 74, 0, 1)',
+                        borderColor: 'rgba(245, 74, 0, 1)',
+                        borderWidth: 3,
+                        cubicInterpolationMode: 'monotone',
+                        tension: 0.4,
+                        fill: false
+                    }]
+                },
+                options: {
+                    plugins: {
+                        title: {
+                            display: true,
+                            font: {
+                                weight: 'bold',
+                                size: 30
+                            },
+                        },
+                        legend: {
+                            display: false
+                        },
+                    },
+                    layout: {
+                        padding: 25
+                    },
+                    elements: {
+                        point:{
+                            radius: 0
+                        }
+                    },
+                    scales: {
+    
+                    }
+                }
+            };
+
+            const priceChartCanvas = new ChartJSNodeCanvas({ 
+                width: this.width,
+                height: this.height,
+                plugins: {
+                    globalVariableLegacy: ['chartjs-adapter-moment']
+                } 
+            });
+            
+            chartData.forEach(holdersData => {
+                let holdersDate = moment(holdersData.date);
+
+                chartConfig.data.labels.push(holdersDate);
+                chartConfig.data.datasets[0].data.push(holdersData.holders);
+            });
+
+            // configs
+            chartConfig.data.datasets.label = 'POODL Holders';
+
+            chartConfig.options.plugins.title.text = ['POODL HOODLER since 3 month ago'];            
+
+            chartConfig.options.scales.x = {
+                type: 'time',
+                time: {
+                    displayFormats: {
+                        week: 'MMM Do'
+                    },
+                    stepSize: 1,
+                    parser: function(date) {
+                        return moment(date).utcOffset('+0000');
+                    }
+                },
+                ticks: {
+                    font: {
+                        size: 28
+                    }
+                }
+            };
+
+            chartConfig.options.scales.y = {
+                position: 'right',
+                ticks: {
+                    font: {
+                        size: 28
+                    }
+                }
+            }
+
+            // render the chart
             const chartBufferPromise = priceChartCanvas.renderToBuffer(chartConfig, 'image/png');
             chartBufferPromise.then(buffer => {
                 resolve(buffer);

@@ -10,7 +10,8 @@ export default class CoinDataService {
         this.dataTickerHalfMinute = null;
         this.dataTickerHour = null;
         this.poodlStartBlock = 6795681;
-        this.holdersBlockStep = 50000
+        this.holdersBlockStep = 600
+        this.blocksUsedInHoldersChart = 4392;
         this.currentBlock = 0;
 
         this.coinData = {
@@ -20,6 +21,7 @@ export default class CoinDataService {
                 circulatingSupply: 0,
                 currentHolders: 0,
                 holdersHistory: JSON.parse(fs.readFileSync('./CoinDataService/holdersHistory.json')),
+                holdersChartBuffer: null,
                 tokenSupply: 100000000000000,
             },
             coinGecko: {
@@ -29,8 +31,6 @@ export default class CoinDataService {
                 priceChartBuffer: null,
             }
         };
-
-        console.log(this.coinData.general.holdersHistory);
 
         this.coinGeckoService = new CoinGeckoService(coingeckoConfig);
         this.covalentService = new CovalentService(covalentConfig);
@@ -82,8 +82,10 @@ export default class CoinDataService {
         // get simple price
         const pricePromise = this.coinGeckoService.getCoinPrice();
         pricePromise.then(price => {
-            this.coinData.coinGecko.currentPrice = price;
-            this.coinData.coinGecko.pricePerMillion = price * 1000000;
+            if (price > 0) {
+                this.coinData.coinGecko.currentPrice = price;
+                this.coinData.coinGecko.pricePerMillion = price * 1000000;
+            }
         })
         .catch(e => {
             console.log(e);
@@ -97,8 +99,11 @@ export default class CoinDataService {
         // get holders
         const holdersPromise = this.covalentService.getTokenHoldersCount();
         holdersPromise.then(holdersData => {
-            const holders = holdersData.pagination.total_count;
-            this.coinData.general.currentHolders = holders;
+
+                if (holdersData !== -1) {
+                    const holders = holdersData.pagination.total_count;
+                    this.coinData.general.currentHolders = holders;
+                }
             })
             .catch(e => {
                 console.log(e);
@@ -152,20 +157,36 @@ export default class CoinDataService {
         const blockDataPromise = this.covalentService.getTokenHoldersCount(blockHeight);
 
         blockDataPromise.then(blockData => {
-            const historyData = {
-                date: 0,
-                holders: blockData.pagination.total_count,
-            };
 
-            this.covalentService.getBlockInfo(blockHeight).then(data => {
-                if (data.items.length > 0) {
-                    historyData.date = data.items[0].signed_at;
-                    this.coinData.general.holdersHistory[`${blockHeight}`] = historyData;
-                    fs.writeFileSync('./CoinDataService/holdersHistory.json', JSON.stringify(this.coinData.general.holdersHistory))
-
-                    this.getHoldersHistory(blockHeight + this.holdersBlockStep);
-                }
-            });
+            if (blockData !== -1) {
+                const historyData = {
+                    date: 0,
+                    holders: blockData.pagination.total_count,
+                };
+    
+                this.covalentService.getBlockInfo(blockHeight).then(data => {
+                    if (data.items.length > 0) {
+                        historyData.date = data.items[0].signed_at;
+                        this.coinData.general.holdersHistory[`${blockHeight}`] = historyData;
+                        fs.writeFileSync('./CoinDataService/holdersHistory.json', JSON.stringify(this.coinData.general.holdersHistory))
+    
+                        this.getHoldersHistory(blockHeight + this.holdersBlockStep);
+                    } else {
+                        // draw price chart
+                        const holdersHistoryValues = Object.values(this.coinData.general.holdersHistory);
+                        const holdersChartBufferPromise = this.chartDrawer.renderHoldersChart(holdersHistoryValues.slice(this.blocksUsedInHoldersChart * -1));
+                        holdersChartBufferPromise.then(buffer => {
+                        this.coinData.general.holdersChartBuffer = buffer;
+                        })
+                        .catch(e => {
+                            console.log(e);
+                        });
+                    }
+                });
+            }
+        })
+        .catch(e => {
+            console.log(e);
         });
     }
 }
